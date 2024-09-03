@@ -1,0 +1,249 @@
+#These code snippets are ideas to add functionalities
+#My main purpose is to integrate those functionalities both in the loan_analyst.py (backend part) and in the loan_app.py (front end part)
+#In addition I want to desing a "Ribbon" interface 
+#In the "assets" folder there are the icons that I use (and I will use) in my app
+
+    @classmethod
+    def simulate_probabilistic_pricing(self, p1_default=0.2, pn_default=0.4, Decay_default=0.9, r_recovery=0.4, 
+                                       interest_rates=(0.3, 0.4), interest_rate_step=0.05,
+                                       loan_terms=(5, 20), loan_term_step=5,
+                                       iterations=1000, perspective='lender'):
+        """
+        Simula l'IRR atteso per una serie di tassi di interesse e durate del prestito, considerando i rischi di default e recupero.
+        
+        Parametri:
+        - p1_default (float): Probabilità di default nel primo anno.
+        - pn_default (float): Probabilità di default nell'ultimo anno.
+        - Decay_default (float): Tasso di decadimento della probabilità di default ogni anno.
+        - r_recovery (float): Tasso di recupero in caso di default.
+        - interest_rates (tuple): Una tupla di (min_rate, max_rate) per i tassi di interesse.
+        - interest_rate_step (float): L'incremento dei tassi di interesse.
+        - loan_terms (tuple): Una tupla di (min_term, max_term) per le durate dei prestiti in anni.
+        - loan_term_step (int): L'incremento delle durate del prestito.
+        - iterations (int): Numero di iterazioni Monte Carlo per la simulazione.
+        - perspective (str): 'lender' o 'borrower', influenza i segni dei flussi di cassa.
+        
+        Ritorna:
+        - Un DataFrame contenente gli IRR simulati per ogni combinazione di tasso di interesse e durata del prestito.
+        """
+        rate_range = np.arange(interest_rates[0], interest_rates[1] + interest_rate_step, interest_rate_step)
+        term_range = np.arange(loan_terms[0], loan_terms[1] + loan_term_step, loan_term_step)
+
+        results = []
+        
+        for rate in tqdm(rate_range):
+            for term in term_range:
+                irrs = []
+
+                for _ in range(iterations):
+                    cash_flows = []
+                    default_occurred = False
+
+                    # Simula i flussi di cassa annuali
+                    for year in range(1, term + 1):
+                        if year == 1:
+                            p_default = p1_default
+                        elif year == term:
+                            p_default = pn_default
+                        else:
+                            p_default = p_default * Decay_default
+
+                        if not default_occurred and np.random.rand() < p_default:
+                            default_occurred = True
+                            cash_flows.append(0)  # Anno del default
+                            cash_flows.append(0)  # Anno successivo al default
+                            cash_flows.append(self.loan_amount * r_recovery)  # Recupero dopo 2 anni
+                            break
+                        else:
+                            payment = self.loan_amount * rate
+                            if perspective == 'lender':
+                                cash_flows.append(-payment)
+                            else:  # Borrower
+                                cash_flows.append(payment)
+
+                    # Rimborso finale del capitale se non c'è default
+                    if not default_occurred:
+                        if perspective == 'lender':
+                            cash_flows[-1] -= self.loan_amount
+                        else:
+                            cash_flows[-1] += self.loan_amount
+
+                    # Primo flusso di cassa: negativo per il prestatore, positivo per il mutuatario
+                    initial_cash_flow = -self.loan_amount if perspective == 'lender' else self.loan_amount
+                    cash_flows.insert(0, initial_cash_flow)
+
+                    # Calcola l'IRR per i flussi di cassa simulati
+                    irr = npf.irr(cash_flows)
+                    irrs.append(irr)
+
+                expected_irr = np.mean(irrs)
+                results.append({'Rate': rate, 'Term': term, 'Expected IRR': expected_irr})
+
+        df = pd.DataFrame(results)
+        return df
+    
+    def plot_irrs(self, df):
+        """
+        Crea un grafico interattivo per i valori IRR.
+        """
+        fig = px.scatter(df, x='Rate', y='Term', color='Expected IRR', 
+                         hover_data=['Expected IRR'], title="IRR Simulation Results")
+        fig.update_traces(marker=dict(size=12, line=dict(width=2, color='DarkSlateGrey')))
+        fig.show()
+
+    def heatmap_sensitivity(self, df, variable):
+        """
+        Crea una heatmap interattiva per visualizzare la sensibilità dell'IRR rispetto a una variabile.
+        """
+        fig = px.density_heatmap(df, x='Rate', y='Term', z=variable, 
+                                 title=f"Sensitivity Analysis of {variable}",
+                                 histfunc='avg', nbinsx=20, nbinsy=20)
+        fig.update_layout(autosize=True, xaxis_title='Interest Rate', yaxis_title='Loan Term')
+        fig.show()
+
+    def optimize_loan(self, p1_default=0.2, pn_default=0.4, Decay_default=0.9, r_recovery=0.4, 
+                      iterations=1000):
+        """
+        Ottimizza i parametri del prestito per massimizzare l'IRR atteso per il prestatore e minimizzare
+        l'IRR atteso per il mutuatario, trovando un equilibrio tra i due.
+
+        Parametri:
+        - p1_default (float): Probabilità di default nel primo anno.
+        - pn_default (float): Probabilità di default nell'ultimo anno.
+        - Decay_default (float): Tasso di decadimento della probabilità di default ogni anno.
+        - r_recovery (float): Tasso di recupero in caso di default.
+        - iterations (int): Numero di iterazioni Monte Carlo per la simulazione.
+
+        Ritorna:
+        - Un dizionario con i parametri ottimali e di equilibrio (tasso, durata, IRR) per prestatore e mutuatario.
+        """
+        
+        def objective_lender(params):
+            rate, term = params
+            df = self.simulate_probabilistic_pricing(p1_default=p1_default, pn_default=pn_default, 
+                                                     Decay_default=Decay_default, r_recovery=r_recovery, 
+                                                     interest_rates=(rate, rate), loan_terms=(term, term),
+                                                     iterations=iterations, perspective='lender')
+            return -df['Expected IRR'].iloc[0]  # Minimizza l'IRR negativo (massimizza l'IRR positivo per il lender)
+
+        def objective_borrower(params):
+            rate, term = params
+            df = self.simulate_probabilistic_pricing(p1_default=p1_default, pn_default=pn_default, 
+                                                     Decay_default=Decay_default, r_recovery=r_recovery, 
+                                                     interest_rates=(rate, rate), loan_terms=(term, term),
+                                                     iterations=iterations, perspective='borrower')
+            return df['Expected IRR'].iloc[0]  # Minimizza l'IRR positivo (massimizza l'IRR negativo per il borrower)
+        
+        bounds = [(0.01, 0.5), (1, 30)]  # Limiti per tasso di interesse e durata del prestito
+
+        # Ottimizzazione per il prestatore (lender)
+        result_lender = differential_evolution(objective_lender, bounds)
+        optimized_rate_lender, optimized_term_lender = result_lender.x
+        optimized_irr_lender = -result_lender.fun
+
+        # Ottimizzazione per il mutuatario (borrower)
+        result_borrower = differential_evolution(objective_borrower, bounds)
+        optimized_rate_borrower, optimized_term_borrower = result_borrower.x
+        optimized_irr_borrower = result_borrower.fun
+
+        # Calcolo del punto di equilibrio
+        equilibrium_rate = (optimized_rate_lender + optimized_rate_borrower) / 2
+        equilibrium_term = (optimized_term_lender + optimized_term_borrower) / 2
+
+        df_lender = self.simulate_probabilistic_pricing(p1_default=p1_default, pn_default=pn_default, 
+                                                        Decay_default=Decay_default, r_recovery=r_recovery, 
+                                                        interest_rates=(equilibrium_rate, equilibrium_rate), 
+                                                        loan_terms=(equilibrium_term, equilibrium_term),
+                                                        iterations=iterations, perspective='lender')
+        df_borrower = self.simulate_probabilistic_pricing(p1_default=p1_default, pn_default=pn_default, 
+                                                          Decay_default=Decay_default, r_recovery=r_recovery, 
+                                                          interest_rates=(equilibrium_rate, equilibrium_rate), 
+                                                          loan_terms=(equilibrium_term, equilibrium_term),
+                                                          iterations=iterations, perspective='borrower')
+        
+        equilibrium_irr_lender = df_lender['Expected IRR'].iloc[0]
+        equilibrium_irr_borrower = df_borrower['Expected IRR'].iloc[0]
+
+        return {
+            'Lender Optimized Rate': optimized_rate_lender,
+            'Lender Optimized Term': optimized_term_lender,
+            'Lender Expected IRR': optimized_irr_lender,
+            'Borrower Optimized Rate': optimized_rate_borrower,
+            'Borrower Optimized Term': optimized_term_borrower,
+            'Borrower Expected IRR': optimized_irr_borrower,
+            'Equilibrium Rate': equilibrium_rate,
+            'Equilibrium Term': equilibrium term,
+            'Equilibrium IRR Lender': equilibrium_irr_lender,
+            'Equilibrium IRR Borrower': equilibrium_irr_borrower
+        }
+
+    @classmethod
+    def generate_report(self, output_directory=None, filename='loan_report'):
+        """
+        Genera un report dettagliato in formato HTML e PDF che copre tutti gli aspetti del prestito.
+        
+        Parametri:
+        - output_directory (str): Directory dove salvare il report. Se None, utilizza una directory predefinita 'reports'.
+        - filename (str): Nome del file di output senza estensione.
+        
+        Ritorna:
+        - Percorsi del file HTML e PDF generati.
+        """
+        # 1. Se non è specificata una directory di output, usa la directory predefinita
+        if output_directory is None:
+            output_directory = 'reports'
+        
+        # 2. Creazione della directory di output se non esiste
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+
+        # 3. Riassunto del prestito
+        summary_text = f"""
+        <h2>Loan Summary</h2>
+        <p>Loan Amount: €{self.loan_amount:,.2f}</p>
+        <p>Interest Rate: {self.initial_rate * 100:.2f}%</p>
+        <p>Term: {self.initial_term} years</p>
+        <p>Payment: {self.pmt_str}</p>
+        <p>Downpayment: €{self.downpayment:,.2f} ({self.downpayment_percent}%)</p>
+        <p>Start Date: {self.start.strftime('%Y-%m-%d')}</p>
+        <p>Amortization Type: {self.amortization_type}</p>
+        """
+
+        # 4. Tabella di ammortamento
+        amortization_table_html = self.table.to_html(classes='table table-striped', float_format="€{:,.2f}".format)
+
+        # 5. Grafico del Balance vs Interest
+        self.plot_balances()
+        balance_vs_interest_graph_path = os.path.join(output_directory, 'balance_vs_interest.png')
+        plt.savefig(balance_vs_interest_graph_path)
+        plt.close()
+
+        # 6. Risultati del probabilistic loan pricing
+        pricing_results = self.simulate_probabilistic_pricing()
+        pricing_results_html = pricing_results.to_html(classes='table table-striped', float_format="{:,.2f}%".format)
+        
+        # 7. Generazione del contenuto del report
+        env = Environment(loader=FileSystemLoader('.'))
+        template = env.get_template('report_template.html')
+
+        # 8. Popolazione del template con i dati
+        html_out = template.render(summary_text=summary_text,
+                                   amortization_table=amortization_table_html,
+                                   balance_vs_interest_graph=balance_vs_interest_graph_path,
+                                   pricing_results=pricing_results_html)
+
+        # 9. Salvare il report in HTML
+        html_file_path = os.path.join(output_directory, f'{filename}.html')
+        with open(html_file_path, 'w') as f:
+            f.write(html_out)
+
+        # 10. Conversione del report HTML in PDF
+        pdf_file_path = os.path.join(output_directory, f'{filename}.pdf')
+        weasyprint.HTML(html_file_path).write_pdf(pdf_file_path)
+
+        return html_file_path, pdf_file_path
+
+#TODO: Consentire di far scegliere all’utente dove salvare il database, i report e i file con i dati esportati
+#TODO: Implementare queste funzionalità sia nel backend che nella GUI
+#TODO: Fare in modo che si possano eseguire più attività in contemporanea su più prestiti in contemporanea. In pratica vorrei che. Mantenendo la possibilità di eseguire singole operazioni su prestiti singoli, si possano eseguire più operazioni su più prestiti. 
+
