@@ -4,8 +4,7 @@
 #In the "assets" folder there are the icons that I use (and I will use) in my app
 
 
-#Idea 1:
-Other amortization methods:
+Idea 1: #TODO: Other amortization methods:
         (da inserire nel metodo "loan_table")
         # Ammortamento tedesco: rate costanti anticipate (come l'ammortamento francese), con interessi pagati anticipatamente.
         # Questo vuol dire che la prima rata è costituita dai soli interessi (differenza con l'ammortamento francese), mentre le altre sono costanti
@@ -62,15 +61,21 @@ Other amortization methods:
 
         Il resto del codice della tabella di ammortamento rimane uguale
 
+
+Idea 2 #TODO: Inserire supporto per altre valute (Dollaro americano, dollaro canadese, dollaro australiano, sterlina britannica, yen giapponese)
+
+Idea 3 #TODO: Consentire di far scegliere all’utente dove salvare il database, i report e i file con i dati esportati
+Idea 4 #TODO: Implementare queste funzionalità sia nel backend che nella GUI
+Idea 5 #TODO: Fare in modo che si possano eseguire più attività in contemporanea su più prestiti in contemporanea. In pratica vorrei che. Mantenendo la possibilità di eseguire singole operazioni su prestiti singoli, si possano eseguire più operazioni su più prestiti. 
         
-#Idea 2: Supportare i mutui a tasso variabile (questo è un 'must have' per un loan analyst serio)
+Idea 6 #TODO: Supportare i mutui a tasso variabile (questo è un 'must have' per un loan analyst serio)
 
 Problemi:
  1) Come implementare la logica dei mutui a tasso variabile nel piano di ammortamento (difficilmente risolvibile)
  2) Dove trovare i dati dei tassi variabili (Problema risolvibile con del sano web scraping)
 
  
-#Idea 3: Aggiungere dei metodi per della sana risk analysis
+Idea 7: #TODO: Aggiungere dei metodi per della sana risk analysis
 
     @classmethod
     def simulate_probabilistic_pricing(self, p1_default=0.2, pn_default=0.4, Decay_default=0.9, r_recovery=0.4, 
@@ -246,6 +251,8 @@ Problemi:
             'Equilibrium IRR Borrower': equilibrium_irr_borrower
         }
 
+
+Idea 8 #TODO: Aggiungere delle funzioni per la reportistica
     @classmethod
     def generate_report(self, output_directory=None, filename='loan_report'):
         """
@@ -312,7 +319,4 @@ Problemi:
 
         return html_file_path, pdf_file_path
 
-#TODO: Consentire di far scegliere all’utente dove salvare il database, i report e i file con i dati esportati
-#TODO: Implementare queste funzionalità sia nel backend che nella GUI
-#TODO: Fare in modo che si possano eseguire più attività in contemporanea su più prestiti in contemporanea. In pratica vorrei che. Mantenendo la possibilità di eseguire singole operazioni su prestiti singoli, si possano eseguire più operazioni su più prestiti. 
-
+Idea 9: #TODO: Devi rendere possibile per l'utente di scegliere la directory in cui salvare i file (report, database etc...) che
