@@ -3,6 +3,75 @@
 #In addition I want to desing a "Ribbon" interface 
 #In the "assets" folder there are the icons that I use (and I will use) in my app
 
+
+#Idea 1:
+Other amortization methods:
+        (da inserire nel metodo "loan_table")
+        # Ammortamento tedesco: rate costanti anticipate (come l'ammortamento francese), con interessi pagati anticipatamente.
+        # Questo vuol dire che la prima rata è costituita dai soli interessi (differenza con l'ammortamento francese), mentre le altre sono costanti
+        In sintesi:
+         - Quota interessi: I_{k} (Quota interessi) = D_{k}di = ((n-k)/n)*(S*d)
+         - Rata iniziale: R_{k} (Rata iniziale costituita dalla sola quota interessi) = S*d
+         - Rata costante: R_{k} (Rata costante successiva alla prima) = (n-k)*(S/n)*d + S/n, per k fino a n-1
+         - Rata finale: R_{k} (Rata finale) = S/n
+
+
+        #Ammortamento americano (a due tassi)
+
+        ..... (Logica dell'ammortamento francese)
+
+        ------(Logica dell'ammortamento italiano)
+
+
+        elif self.amortization_type == "German":
+            interest = [self.loan_amount * self.rate for _ in range(self.periods)]
+            principal = [(self.loan_amount / self.periods) for _ in range(self.periods)]
+            balance = [self.loan_amount - sum(principal[:i]) for i in range(1, self.periods + 1)]
+
+            table = pd.DataFrame({
+                'Initial Debt': [self.loan_amount] + balance[:-1],
+                'Payment': [interest[i] + principal[i] for i in range(self.periods)],
+                'Interest': interest,
+                'Principal': principal,
+                'Balance': balance
+            }, index=pd.to_datetime(periods))
+
+
+        elif self.amortization_type == "American":
+            # Calcoliamo gli interessi periodici
+            interest = [self.loan_amount * self.rate for _ in range(self.periods)]
+            # Nessun pagamento di capitale fino all'ultima rata
+            principal = [0] * (self.periods - 1) + [self.loan_amount]
+            # Le rate di pagamento sono costituite dagli interessi, tranne l'ultima che include il capitale
+            payment = interest[:-1] + [interest[-1] + self.loan_amount]
+            # Il bilancio diminuisce solo con il pagamento finale del capitale
+            balance = [self.loan_amount] * (self.periods - 1) + [0]
+
+            # Calcoliamo il tasso di rendimento richiesto per il fondo di ammortamento
+            investment_rate = self.calculate_investment_rate()
+
+            table = pd.DataFrame({
+                'Initial Debt': [self.loan_amount] + balance[:-1],
+                'Payment': payment,
+                'Interest': interest,
+                'Principal': principal,
+                'Balance': balance,
+                'Investment Rate': [investment_rate] * self.periods
+            }, index=pd.to_datetime(periods))
+
+
+        Il resto del codice della tabella di ammortamento rimane uguale
+
+        
+#Idea 2: Supportare i mutui a tasso variabile (questo è un 'must have' per un loan analyst serio)
+
+Problemi:
+ 1) Come implementare la logica dei mutui a tasso variabile nel piano di ammortamento (difficilmente risolvibile)
+ 2) Dove trovare i dati dei tassi variabili (Problema risolvibile con del sano web scraping)
+
+ 
+#Idea 3: Aggiungere dei metodi per della sana risk analysis
+
     @classmethod
     def simulate_probabilistic_pricing(self, p1_default=0.2, pn_default=0.4, Decay_default=0.9, r_recovery=0.4, 
                                        interest_rates=(0.3, 0.4), interest_rate_step=0.05,
