@@ -476,4 +476,7 @@ Idea 8 #TODO: Aggiungere delle funzioni per la reportistica
 
         return html_file_path, pdf_file_path
 
-Idea 9: #TODO: Devi rendere possibile per l'utente di scegliere la directory in cui salvare i file (report, database etc...) che
+
+Idea 9: #TODO: Devi rendere possibile per l'utente di scegliere la directory in cui salvare i file (report, database etc...) che vengono creati
+
+Idea 10: #TODO: Inserisci un metodo per redigere in automatico le scritture contabili
