@@ -3,8 +3,9 @@
 #In addition I want to desing a "Ribbon" interface 
 #In the "assets" folder there are the icons that I use (and I will use) in my app
 
+Idea 1: #TODO: inserire un sistema di logging che differenzia due tipologie di utente e relative sottotipologie: devi differenziare come due macro-tipologie "Corporate" e "Banking" e - all'interno di entrambe - differenziare diversi livelli di autorizzazione con diversi accessi alle funzioni (guest: visualizzazione dei risultati, user: visualizzione dei risultati più accesso a tutte le funzionalità del programma tranne quella di aprire i database, admin: le autorizzazione dell'user più la facoltà di agire direttamente sui database)
 
-Idea 1: #TODO: Other amortization methods:
+Idea 2: #TODO: Other amortization methods:
         (da inserire nel metodo "loan_table")
         # Ammortamento tedesco: rate costanti anticipate (come l'ammortamento francese), con interessi pagati anticipatamente.
         # Questo vuol dire che la prima rata è costituita dai soli interessi (differenza con l'ammortamento francese), mentre le altre sono costanti
@@ -64,13 +65,15 @@ Idea 1: #TODO: Other amortization methods:
         Il resto del codice della tabella di ammortamento rimane uguale
 
 
-Idea 2 #TODO: Inserire supporto per altre valute (Dollaro americano, dollaro canadese, dollaro australiano, sterlina britannica, yen giapponese)
+Idea 3 #TODO: Inserire supporto per altre valute (Dollaro americano, dollaro canadese, dollaro australiano, sterlina britannica, yen giapponese)
 
-Idea 3 #TODO: Consentire di far scegliere all’utente dove salvare il database, i report e i file con i dati esportati
-Idea 4 #TODO: Implementare queste funzionalità sia nel backend che nella GUI
-Idea 5 #TODO: Fare in modo che si possano eseguire più attività in contemporanea su più prestiti in contemporanea. In pratica vorrei che. Mantenendo la possibilità di eseguire singole operazioni su prestiti singoli, si possano eseguire più operazioni su più prestiti. 
+Idea 4: #TODO: tra i parametri del prestito devi inserire la banca con cui è sottoscritto (inserendone il nome e l'ID) o - se si tratta di una banca che fa i calcoli del prestito - il nome del mutuatario e i relativi contatti. 
+
+Idea 5 #TODO: Consentire di far scegliere all’utente dove salvare il database, i report e i file con i dati esportati
+Idea 6 #TODO: Implementare queste funzionalità sia nel backend che nella GUI
+Idea 7 #TODO: Fare in modo che si possano eseguire più attività in contemporanea su più prestiti in contemporanea. In pratica vorrei che. Mantenendo la possibilità di eseguire singole operazioni su prestiti singoli, si possano eseguire più operazioni su più prestiti. 
         
-Idea 6 #TODO: Supportare i mutui a tasso variabile (questo è un 'must have' per un loan analyst serio)
+Idea 8 #TODO: Supportare i mutui a tasso variabile (questo è un 'must have' per un loan analyst serio)
 
 Problemi:
  1) Come implementare la logica dei mutui a tasso variabile nel piano di ammortamento (difficilmente risolvibile)
@@ -234,7 +237,7 @@ Problemi:
         # Rest of the class methods remain unchanged
 
  
-Idea 7: #TODO: Aggiungere dei metodi per della sana risk analysis
+Idea 9: #TODO: Aggiungere dei metodi per della sana risk analysis
 
     @classmethod
     def simulate_probabilistic_pricing(self, p1_default=0.2, pn_default=0.4, Decay_default=0.9, r_recovery=0.4, 
@@ -411,7 +414,7 @@ Idea 7: #TODO: Aggiungere dei metodi per della sana risk analysis
         }
 
 
-Idea 8 #TODO: Aggiungere delle funzioni per la reportistica
+Idea 10 #TODO: Aggiungere delle funzioni per la reportistica
     @classmethod
     def generate_report(self, output_directory=None, filename='loan_report'):
         """
@@ -479,9 +482,9 @@ Idea 8 #TODO: Aggiungere delle funzioni per la reportistica
         return html_file_path, pdf_file_path
 
 
-Idea 9: #TODO: Devi rendere possibile per l'utente di scegliere la directory in cui salvare i file (report, database etc...) che vengono creati
+Idea 11: #TODO: Devi rendere possibile per l'utente di scegliere la directory in cui salvare i file (report, database etc...) che vengono creati
 
-Idea 10: #TODO: Inserisci un metodo per redigere in automatico le scritture contabili associate al prestito. 
+Idea 12: #TODO: Inserisci un metodo per redigere in automatico le scritture contabili associate al prestito. 
 Quali sono le scritture contabili associate al contratto di mutuo? Vedremo le movimentazioni distinguendo se si tratta di mutui passivi (stiamo analizzando il mutuo dal punto di vista del cliente)
 o mutui attivi (stiamo analizzando il prestito dal punto di vista dell'istituto di credito)
     1) Accensione del mutuo passivo:
@@ -533,4 +536,4 @@ o mutui attivi (stiamo analizzando il prestito dal punto di vista dell'istituto 
                 # Risconti attivi (per la quota da pagare nell'esercizio successivo) in avere > variazione finanziaria passiva;
 
 
-    Devi fare in modo che queste scritture contabili vengano mostrate a video, esportate in pdf e rese disponibili per la stampa 
+    Devi fare in modo che queste scritture contabili vengano mostrate a video, inserite nel report creato nell'Idea 10 ed esportate in pdf e rese disponibili per la stampa 
