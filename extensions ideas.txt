@@ -19,7 +19,9 @@ Idea 1: #TODO: Other amortization methods:
 
         ..... (Logica dell'ammortamento francese)
 
-        ------(Logica dell'ammortamento italiano)
+        ..... (Logica dell'ammortamento italiano)
+
+        ..... (Logica dell'ammortamento tedesco)
 
 
         elif self.amortization_type == "German":
@@ -75,161 +77,161 @@ Problemi:
  2) Dove trovare i dati dei tassi variabili (Problema risolvibile con del sano web scraping)
 
 
-Code Idea per supportare i mutui a tasso variabile
+    Code Idea per supportare i mutui a tasso variabile
 
-import requests
-from bs4 import BeautifulSoup
+    import requests
+    from bs4 import BeautifulSoup
 
-class Loan:
-    loans = []
-    db_directory = os.getcwd()  # Default to the current working directory
-    
-    def __init__(self, rate, term, loan_amount, amortization_type, frequency, rate_type='fixed', use_euribor=False, update_frequency='monthly', downpayment_percent=0, additional_costs=None, periodic_expenses=None, start=dt.date.today().isoformat(), loan_id=None):
-        self.loan_id = loan_id or str(uuid.uuid4())
-        self.initial_rate = rate 
-        self.initial_term = term
-        self.loan_amount = loan_amount
-        self.downpayment_percent = downpayment_percent
-        self.downpayment = self.loan_amount * (self.downpayment_percent / 100)
-        self.loan_amount -= self.downpayment
-        self.start = dt.datetime.fromisoformat(start).replace(day=1)
-        self.frequency = frequency
-        self.rate_type = rate_type
-        self.use_euribor = use_euribor
-        self.update_frequency = update_frequency
-        self.periods = self.calculate_periods()
-        self.euribor_rates = self.get_euribor_rates() if self.use_euribor else {}
-        self.rate = self.calculate_rate()
-        self.pmt = abs(npf.pmt(self.rate, self.periods, self.loan_amount))
-        self.pmt_str = f"€ {self.pmt:,.2f}"
-        self.amortization_type = amortization_type
-        self.additional_costs = additional_costs or {}
-        self.periodic_expenses = periodic_expenses or {}
-        self.taeg = {}
-        self.table = self.loan_table()
-        self.active = False
-        Loan.loans.append(self)
-
-    def get_euribor_rates(self):
-        url = 'https://www.euribor-rates.eu/en/'
-        response = requests.get(url)
-        soup = BeautifulSoup(response.content, 'html.parser')
+    class Loan:
+        loans = []
+        db_directory = os.getcwd()  # Default to the current working directory
         
-        rates = {}
-        rate_elements = soup.find_all('div', class_='rate')
-        for rate_element in rate_elements:
-            rate_text = rate_element.text.strip()
-            if '1 month' in rate_text:
-                rates['1m'] = float(rate_text.replace('1 month', '').replace('%', '').strip()) / 100
-            elif '3 months' in rate_text:
-                rates['3m'] = float(rate_text.replace('3 months', '').replace('%', '').strip()) / 100
-            elif '6 months' in rate_text:
-                rates['6m'] = float(rate_text.replace('6 months', '').replace('%', '').strip()) / 100
-            elif '12 months' in rate_text:
-                rates['12m'] = float(rate_text.replace('12 months', '').replace('%', '').strip()) / 100
-        
-        return rates
-
-    def calculate_periods(self):
-        if self.frequency == 'monthly':
-            return self.initial_term * 12
-        elif self.frequency == 'quarterly':
-            return self.initial_term * 4
-        elif self.frequency == 'semi-annual':
-            return self.initial_term * 2
-        elif self.frequency == 'annual':
-            return self.initial_term
-        else:
-            raise ValueError("Unsupported frequency")
-
-    def calculate_rate(self):
-        if self.rate_type == 'fixed':
-            if self.frequency == 'monthly':
-                return self.initial_rate / 12
-            elif self.frequency == 'quarterly':
-                return self.initial_rate / 4
-            elif self.frequency == 'semi-annual':
-                return self.initial_rate / 2
-            elif self.frequency == 'annual':
-                return self.initial_rate
-            else:
-                raise ValueError("Unsupported frequency")
-        elif self.rate_type == 'variable':
-            if self.use_euribor:
-                if self.update_frequency == 'monthly':
-                    euribor_rate = self.euribor_rates.get('1m', self.initial_rate)
-                elif self.update_frequency == 'quarterly':
-                    euribor_rate = self.euribor_rates.get('3m', self.initial_rate)
-                elif self.update_frequency == 'semi-annual':
-                    euribor_rate = self.euribor_rates.get('6m', self.initial_rate)
-                elif self.update_frequency == 'annual':
-                    euribor_rate = self.euribor_rates.get('12m', self.initial_rate)
-                else:
-                    raise ValueError("Unsupported update frequency")
-                return euribor_rate / 12  # Assuming monthly updates for variable rate
-            else:
-                return self.initial_rate / 12  # Assuming monthly updates for variable rate
-        else:
-            raise ValueError("Unsupported rate type")
-
-    def loan_table(self):
-        if self.frequency == 'monthly':
-            periods = [self.start + relativedelta(months=x) for x in range(self.periods)]
-        elif self.frequency == 'quarterly':
-            periods = [self.start + relativedelta(months=3 * x) for x in range(self.periods)]
-        elif self.frequency == 'semi-annual':
-            periods = [self.start + relativedelta(months=6 * x) for x in range(self.periods)]
-        elif self.frequency == 'annual':
-            periods = [self.start + relativedelta(years=x) for x in range(self.periods)]
-        else:
-            raise ValueError("Unsupported frequency")
-
-        if self.amortization_type == "French":
-            interest = [npf.ipmt(self.rate, month, self.periods, -self.loan_amount, when="end")
-                        for month in range(1, self.periods + 1)]
-            principal = [npf.ppmt(self.rate, month, self.periods, -self.loan_amount)
-                        for month in range(1, self.periods + 1)]
-            balance = [self.loan_amount - sum(principal[:x]) for x in range(1, self.periods + 1)]
-            table = pd.DataFrame({
-                'Initial Debt': [self.loan_amount] + balance[:-1],
-                'Payment': [self.pmt] * self.periods,
-                'Interest': interest,
-                'Principal': principal,
-                'Balance': balance
-            }, index=pd.to_datetime(periods))
-
-        elif self.amortization_type == "Italian":
-            principal_payment = self.loan_amount / self.periods
-            interest = [(self.loan_amount - principal_payment * x) * self.rate for x in range(self.periods)]
-            principal = [principal_payment] * self.periods
-            payment = [interest[x] + principal[x] for x in range(self.periods)]
-            balance = [self.loan_amount - sum(principal[:x+1]) for x in range(self.periods)]
-
-            table = pd.DataFrame({
-                'Initial Debt': [self.loan_amount] + balance[:-1],
-                'Payment': payment,
-                'Interest': interest,
-                'Principal': principal,
-                'Balance': balance
-            }, index=pd.to_datetime(periods))
-
-        else:
-            raise ValueError("Unsupported amortization type")
-
-        return table.round(2)
-
-    def update_variable_rate(self):
-        """Update the variable rate based on the latest EURIBOR rate and recalculate the payment and loan table."""
-        if self.rate_type == 'variable' and self.use_euribor:
-            self.euribor_rates = self.get_euribor_rates()
+        def __init__(self, rate, term, loan_amount, amortization_type, frequency, rate_type='fixed', use_euribor=False, update_frequency='monthly', downpayment_percent=0, additional_costs=None, periodic_expenses=None, start=dt.date.today().isoformat(), loan_id=None):
+            self.loan_id = loan_id or str(uuid.uuid4())
+            self.initial_rate = rate 
+            self.initial_term = term
+            self.loan_amount = loan_amount
+            self.downpayment_percent = downpayment_percent
+            self.downpayment = self.loan_amount * (self.downpayment_percent / 100)
+            self.loan_amount -= self.downpayment
+            self.start = dt.datetime.fromisoformat(start).replace(day=1)
+            self.frequency = frequency
+            self.rate_type = rate_type
+            self.use_euribor = use_euribor
+            self.update_frequency = update_frequency
+            self.periods = self.calculate_periods()
+            self.euribor_rates = self.get_euribor_rates() if self.use_euribor else {}
             self.rate = self.calculate_rate()
             self.pmt = abs(npf.pmt(self.rate, self.periods, self.loan_amount))
             self.pmt_str = f"€ {self.pmt:,.2f}"
+            self.amortization_type = amortization_type
+            self.additional_costs = additional_costs or {}
+            self.periodic_expenses = periodic_expenses or {}
+            self.taeg = {}
             self.table = self.loan_table()
-        else:
-            raise ValueError("Cannot update rate for fixed rate loans or non-EURIBOR variable rate loans")
+            self.active = False
+            Loan.loans.append(self)
 
-    # Rest of the class methods remain unchanged
+        def get_euribor_rates(self):
+            url = 'https://www.euribor-rates.eu/en/'
+            response = requests.get(url)
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            rates = {}
+            rate_elements = soup.find_all('div', class_='rate')
+            for rate_element in rate_elements:
+                rate_text = rate_element.text.strip()
+                if '1 month' in rate_text:
+                    rates['1m'] = float(rate_text.replace('1 month', '').replace('%', '').strip()) / 100
+                elif '3 months' in rate_text:
+                    rates['3m'] = float(rate_text.replace('3 months', '').replace('%', '').strip()) / 100
+                elif '6 months' in rate_text:
+                    rates['6m'] = float(rate_text.replace('6 months', '').replace('%', '').strip()) / 100
+                elif '12 months' in rate_text:
+                    rates['12m'] = float(rate_text.replace('12 months', '').replace('%', '').strip()) / 100
+            
+            return rates
+
+        def calculate_periods(self):
+            if self.frequency == 'monthly':
+                return self.initial_term * 12
+            elif self.frequency == 'quarterly':
+                return self.initial_term * 4
+            elif self.frequency == 'semi-annual':
+                return self.initial_term * 2
+            elif self.frequency == 'annual':
+                return self.initial_term
+            else:
+                raise ValueError("Unsupported frequency")
+
+        def calculate_rate(self):
+            if self.rate_type == 'fixed':
+                if self.frequency == 'monthly':
+                    return self.initial_rate / 12
+                elif self.frequency == 'quarterly':
+                    return self.initial_rate / 4
+                elif self.frequency == 'semi-annual':
+                    return self.initial_rate / 2
+                elif self.frequency == 'annual':
+                    return self.initial_rate
+                else:
+                    raise ValueError("Unsupported frequency")
+            elif self.rate_type == 'variable':
+                if self.use_euribor:
+                    if self.update_frequency == 'monthly':
+                        euribor_rate = self.euribor_rates.get('1m', self.initial_rate)
+                    elif self.update_frequency == 'quarterly':
+                        euribor_rate = self.euribor_rates.get('3m', self.initial_rate)
+                    elif self.update_frequency == 'semi-annual':
+                        euribor_rate = self.euribor_rates.get('6m', self.initial_rate)
+                    elif self.update_frequency == 'annual':
+                        euribor_rate = self.euribor_rates.get('12m', self.initial_rate)
+                    else:
+                        raise ValueError("Unsupported update frequency")
+                    return euribor_rate / 12  # Assuming monthly updates for variable rate
+                else:
+                    return self.initial_rate / 12  # Assuming monthly updates for variable rate
+            else:
+                raise ValueError("Unsupported rate type")
+
+        def loan_table(self):
+            if self.frequency == 'monthly':
+                periods = [self.start + relativedelta(months=x) for x in range(self.periods)]
+            elif self.frequency == 'quarterly':
+                periods = [self.start + relativedelta(months=3 * x) for x in range(self.periods)]
+            elif self.frequency == 'semi-annual':
+                periods = [self.start + relativedelta(months=6 * x) for x in range(self.periods)]
+            elif self.frequency == 'annual':
+                periods = [self.start + relativedelta(years=x) for x in range(self.periods)]
+            else:
+                raise ValueError("Unsupported frequency")
+
+            if self.amortization_type == "French":
+                interest = [npf.ipmt(self.rate, month, self.periods, -self.loan_amount, when="end")
+                            for month in range(1, self.periods + 1)]
+                principal = [npf.ppmt(self.rate, month, self.periods, -self.loan_amount)
+                            for month in range(1, self.periods + 1)]
+                balance = [self.loan_amount - sum(principal[:x]) for x in range(1, self.periods + 1)]
+                table = pd.DataFrame({
+                    'Initial Debt': [self.loan_amount] + balance[:-1],
+                    'Payment': [self.pmt] * self.periods,
+                    'Interest': interest,
+                    'Principal': principal,
+                    'Balance': balance
+                }, index=pd.to_datetime(periods))
+
+            elif self.amortization_type == "Italian":
+                principal_payment = self.loan_amount / self.periods
+                interest = [(self.loan_amount - principal_payment * x) * self.rate for x in range(self.periods)]
+                principal = [principal_payment] * self.periods
+                payment = [interest[x] + principal[x] for x in range(self.periods)]
+                balance = [self.loan_amount - sum(principal[:x+1]) for x in range(self.periods)]
+
+                table = pd.DataFrame({
+                    'Initial Debt': [self.loan_amount] + balance[:-1],
+                    'Payment': payment,
+                    'Interest': interest,
+                    'Principal': principal,
+                    'Balance': balance
+                }, index=pd.to_datetime(periods))
+
+            else:
+                raise ValueError("Unsupported amortization type")
+
+            return table.round(2)
+
+        def update_variable_rate(self):
+            """Update the variable rate based on the latest EURIBOR rate and recalculate the payment and loan table."""
+            if self.rate_type == 'variable' and self.use_euribor:
+                self.euribor_rates = self.get_euribor_rates()
+                self.rate = self.calculate_rate()
+                self.pmt = abs(npf.pmt(self.rate, self.periods, self.loan_amount))
+                self.pmt_str = f"€ {self.pmt:,.2f}"
+                self.table = self.loan_table()
+            else:
+                raise ValueError("Cannot update rate for fixed rate loans or non-EURIBOR variable rate loans")
+
+        # Rest of the class methods remain unchanged
 
  
 Idea 7: #TODO: Aggiungere dei metodi per della sana risk analysis
@@ -479,4 +481,56 @@ Idea 8 #TODO: Aggiungere delle funzioni per la reportistica
 
 Idea 9: #TODO: Devi rendere possibile per l'utente di scegliere la directory in cui salvare i file (report, database etc...) che vengono creati
 
-Idea 10: #TODO: Inserisci un metodo per redigere in automatico le scritture contabili
+Idea 10: #TODO: Inserisci un metodo per redigere in automatico le scritture contabili associate al prestito. 
+Quali sono le scritture contabili associate al contratto di mutuo? Vedremo le movimentazioni distinguendo se si tratta di mutui passivi (stiamo analizzando il mutuo dal punto di vista del cliente)
+o mutui attivi (stiamo analizzando il prestito dal punto di vista dell'istituto di credito)
+    1) Accensione del mutuo passivo:
+                                    
+        mutui passivi in avere > variazione finanziaria passiva dovuta all’accensione di un debito;
+
+        oneri su mutui in dare > rilevazione di un costo;
+
+        Banca c/c in dare > variazione finanziaria attiva dovuta all’entrata monetaria della somma richiesta in prestito al netto degli oneri su mutui;
+
+    2) Rilevazione del pagamento della rata periodica:
+
+        mutui passivi > rilevazione in dare per variazione finanziaria attiva (riduzione di un debito) per l'importo della rata;
+
+        interessi passivi > rilevazione in dare per variazione economica negativa (sostenimento di un costo);
+
+        (opzionale, ma comunque devi tenerlo in considerazione: la banca può addebitare una somma per ogni operazione. Quindi devi rendere possibile la rilevazione di questa possibilità) Oneri bancari > rilevazione in dare (rilevazione di un costo); 
+
+        Banca c/c > rilevazione in avere  per variazione finanziaria passiva (uscita finanziaria) pari all'importo della rata periodica del mutuo;
+
+    Questa rilevazione contabile va fatta per il numero di rate del mutuo.
+
+        NOTA: Rilevazione degli interessi passivi per ciascuna rata: alcune note
+        
+        Devi stare attento al questo aspetto della rilevazione degli interessi. Qualora, infatti, ci si trovi a cavallo di anno (esercizio amministrativo) dovremo prestare particolare attenzione alla rilevazione della corretta competenza degli interessi medesimi in sede di chiusura dei conti. Per farlo dovremo avvalerci della tecnica contabile dei ratei e risconti.
+
+        In questo caso si possono verificare due ipotesi:
+
+            A)pagamento posticipato della rata e quindi degli interessi > occorre rilevare i ratei passivi per la quota parte che verrà pagata nell’esercizio successivo ma con parziale competenze nell’esercizio in corso;
+
+                + Il rateo passivo in questo caso si rileva come segue:
+
+                    # Interessi passivi su mutui (per la quota parte che verrà pagata nell'esercizio successivo) in dare > Variazione economica negativa;
+
+                    # Ratei passivi (per la quota pagata nell'esercizio in corso) in dare > Variazione finanziaria attiva;
+                occorre rilevare i ratei passivi per la quota parte che verrà pagata nell’esercizio successivo ma con parziale competenze nell’esercizio in corso;
+                    
+                + La relativa scrittura all'apertura dell'esercizio successivo sarà quindi:
+
+                    # Ratei passivi in avere (per stornare il conto movimentato in chiusura) > variazione finanziaria passiva
+                    # Interessi passivi in dare 
+
+            B) pagamento anticipato della rata e quindi degli interessi > occorre rilevare il risconto attivo per la quota parte che è stata pagata in anticipo ma con competenza anche per una parte dell’esercizio successivo. 
+            
+            + Il risconto attivo viene quindi rilevato come segue: 
+
+                # Interessi passivi  (per la quota parte che è stata già pagata in anticipo ma ch è di competenza dell'esercizio successivo) in dare > variazione economica positiva (riduzione di costo);
+
+                # Risconti attivi (per la quota da pagare nell'esercizio successivo) in avere > variazione finanziaria passiva;
+
+
+    Devi fare in modo che queste scritture contabili vengano mostrate a video, esportate in pdf e rese disponibili per la stampa 
