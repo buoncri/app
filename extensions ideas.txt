@@ -537,3 +537,5 @@ o mutui attivi (stiamo analizzando il prestito dal punto di vista dell'istituto 
 
 
     Devi fare in modo che queste scritture contabili vengano mostrate a video, inserite nel report creato nell'Idea 10 ed esportate in pdf e rese disponibili per la stampa 
+
+Idea 13 #TODO: Aggiungi una funzionalità per fare previsioni macroeconomiche su crescita, inflazione e tassi di interesse in modo tale che la risk analysis di prima sia basata su modelli previsioinali quanto più esatti possibile
