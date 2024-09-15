@@ -22,9 +22,6 @@ Idea 2: #TODO: Other amortization methods:
 
         ..... (Logica dell'ammortamento italiano)
 
-        ..... (Logica dell'ammortamento tedesco)
-
-
         elif self.amortization_type == "German":
             interest = [self.loan_amount * self.rate for _ in range(self.periods)]
             principal = [(self.loan_amount / self.periods) for _ in range(self.periods)]
