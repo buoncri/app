@@ -64,7 +64,7 @@ Idea 2: #TODO: Other amortization methods:
 
 Idea 3 #TODO: Inserire supporto per altre valute (Dollaro americano, dollaro canadese, dollaro australiano, sterlina britannica, yen giapponese)
 
-Idea 4: #TODO: tra i parametri del prestito devi inserire la banca con cui è sottoscritto (inserendone il nome e l'ID) o - se si tratta di una banca che fa i calcoli del prestito - il nome del mutuatario e i relativi contatti. 
+Idea 4: #TODO: tra i parametri del prestito devi inserire la banca con cui è sottoscritto (inserendone il nome e l'ID) o - se si tratta di una banca che fa i calcoli del prestito - il nome del mutuatario e i relativi contatti. Nella logica del consolidamento, implementa questo criterio unitamente al tipo di ammortamento e alla frequenza
 
 Idea 5 #TODO: Consentire di far scegliere all’utente dove salvare il database, i report e i file con i dati esportati
 Idea 6 #TODO: Implementare queste funzionalità sia nel backend che nella GUI
@@ -482,6 +482,7 @@ Idea 10 #TODO: Aggiungere delle funzioni per la reportistica
 Idea 11: #TODO: Devi rendere possibile per l'utente di scegliere la directory in cui salvare i file (report, database etc...) che vengono creati
 
 Idea 12: #TODO: Inserisci un metodo per redigere in automatico le scritture contabili associate al prestito. 
+
 Quali sono le scritture contabili associate al contratto di mutuo? Vedremo le movimentazioni distinguendo se si tratta di mutui passivi (stiamo analizzando il mutuo dal punto di vista del cliente)
 o mutui attivi (stiamo analizzando il prestito dal punto di vista dell'istituto di credito)
     1) Accensione del mutuo passivo:
@@ -506,7 +507,7 @@ o mutui attivi (stiamo analizzando il prestito dal punto di vista dell'istituto 
 
         NOTA: Rilevazione degli interessi passivi per ciascuna rata: alcune note
         
-        Devi stare attento al questo aspetto della rilevazione degli interessi. Qualora, infatti, ci si trovi a cavallo di anno (esercizio amministrativo) dovremo prestare particolare attenzione alla rilevazione della corretta competenza degli interessi medesimi in sede di chiusura dei conti. Per farlo dovremo avvalerci della tecnica contabile dei ratei e risconti.
+        Devi stare attento a questo aspetto della rilevazione degli interessi. Qualora, infatti, ci si trovi a cavallo di anno (esercizio amministrativo) dovremo prestare particolare attenzione alla rilevazione della corretta competenza degli interessi medesimi in sede di chiusura dei conti. Per farlo dovremo avvalerci della tecnica contabile dei ratei e risconti.
 
         In questo caso si possono verificare due ipotesi:
 
@@ -534,5 +535,3 @@ o mutui attivi (stiamo analizzando il prestito dal punto di vista dell'istituto 
 
 
     Devi fare in modo che queste scritture contabili vengano mostrate a video, inserite nel report creato nell'Idea 10 ed esportate in pdf e rese disponibili per la stampa 
-
-Idea 13 #TODO: Aggiungi una funzionalità per fare previsioni macroeconomiche su crescita, inflazione e tassi di interesse in modo tale che la risk analysis di prima sia basata su modelli previsioinali quanto più esatti possibile
