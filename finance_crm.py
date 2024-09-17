@@ -5,7 +5,7 @@ def setup_db():
     c = conn.cursor()
     c.execute('''
         CREATE TABLE IF NOT EXISTS customers (
-            id INTEGER PRIMARY KEY,
+            loan_id INTEGER PRIMARY KEY,
             name TEXT,
             email TEXT,
             phone TEXT,
@@ -33,6 +33,7 @@ setup_db()
 import tkinter as tk
 from tkinter import ttk, messagebox
 import sqlite3
+from loan_analyst import Loan
 
 class CRMApp:
     def __init__(self, root):
