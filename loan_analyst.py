@@ -13,7 +13,6 @@ from scipy.optimize import brentq
 import scipy.stats as stats
 from IPython.display import display
 
-#TODO: Fare in modo che si possano eseguire più attività in contemporanea su più prestiti in contemporanea oltre che operazioni singole su un singolo prestito
 
 class Loan:
     loans = []
