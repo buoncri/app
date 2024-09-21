@@ -68,7 +68,7 @@ Idea 4: #TODO: tra i parametri del prestito devi inserire la banca con cui è so
 
 Idea 5 #TODO: Consentire di far scegliere all’utente dove salvare il database, i report e i file con i dati esportati
 Idea 6 #TODO: Implementare queste funzionalità sia nel backend che nella GUI
-Idea 7 #TODO: Fare in modo che si possano eseguire più attività in contemporanea su più prestiti in contemporanea. In pratica vorrei che. Mantenendo la possibilità di eseguire singole operazioni su prestiti singoli, si possano eseguire più operazioni su più prestiti. 
+Idea 7 #TODO: Fare in modo che si possano eseguire più attività in contemporanea su più prestiti in contemporanea. In pratica vorrei che, mantenendo la possibilità di eseguire singole operazioni su prestiti singoli, si possano eseguire più operazioni su più prestiti e più operazioni su un singolo prestito.
         
 Idea 8 #TODO: Supportare i mutui a tasso variabile (questo è un 'must have' per un loan analyst serio)
 
