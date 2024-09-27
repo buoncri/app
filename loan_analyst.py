@@ -12,7 +12,7 @@ import sqlite3
 from scipy.optimize import brentq
 import scipy.stats as stats
 from IPython.display import display
-
+from tkinter import Tk, filedialog
 
 class Loan:
     loans = []
