@@ -410,6 +410,7 @@ Idea 9: #TODO: Aggiungere dei metodi per della sana risk analysis
             'Equilibrium IRR Borrower': equilibrium_irr_borrower
         }
 
+Idea 10 #TODO: inserire un sistema di approvazione/rigetto automatico dei prestiti richiesti basato sul machine learning
 
 Idea 10 #TODO: Aggiungere delle funzioni per la reportistica
     @classmethod
