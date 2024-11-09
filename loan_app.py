@@ -119,14 +119,6 @@ class LoanApp(QMainWindow):
 
         # File menu
         file_menu = menubar.addMenu('File')
-        new_loan_action = QAction('New Loan', self)
-        new_loan_action.triggered.connect(self.new_loan)
-        file_menu.addAction(new_loan_action)
-
-        delete_loan_action = QAction('Delete Loan', self)
-        delete_loan_action.triggered.connect(self.delete_loan)
-        file_menu.addAction(delete_loan_action)
-
         save_to_db_action = QAction('Save to Database', self)
         save_to_db_action.triggered.connect(self.save_to_database)
         file_menu.addAction(save_to_db_action)
@@ -137,9 +129,17 @@ class LoanApp(QMainWindow):
 
         # Loan menu
         loan_menu = menubar.addMenu('Loan')
+        new_loan_action = QAction('New Loan', self)
+        new_loan_action.triggered.connect(self.new_loan)
+        loan_menu.addAction(new_loan_action)
+
         edit_loan_action = QAction('Edit Loan', self)
         edit_loan_action.triggered.connect(self.edit_loan)
         loan_menu.addAction(edit_loan_action)
+        
+        delete_loan_action = QAction('Delete Loan', self)
+        delete_loan_action.triggered.connect(self.delete_loan)
+        loan_menu.addAction(delete_loan_action)
 
         show_payment_action = QAction('Show Payment', self)
         show_payment_action.triggered.connect(self.pmt)
